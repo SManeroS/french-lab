@@ -1,0 +1,14 @@
+{
+  "name": "French Lab — Mi profesor de francés",
+  "short_name": "French Lab",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f8faff",
+  "theme_color": "#17233d",
+  "description": "Tu laboratorio personal para aprender francés de A2 a B1.",
+  "icons": [
+    {"src":"./icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}
+  ]
+}
