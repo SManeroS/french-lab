@@ -1,75 +1,10 @@
 <!doctype html>
-<html lang="es">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#17233d" />
-  <meta name="description" content="French Lab: tu laboratorio personal para aprender francés." />
-  <link rel="manifest" href="manifest.webmanifest" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <link rel="stylesheet" href="styles.css" />
-  <title>French Lab</title>
-</head>
-<body>
-  <div class="app-shell">
-    <header class="topbar">
-      <div class="brand"><div class="brand-mark">FL</div><div><strong>FRENCH LAB</strong><small>MON APPRENTISSAGE</small></div></div>
-      <button class="avatar" aria-label="Perfil">S</button>
-    </header>
-    <main>
-      <section class="welcome">
-        <div><p class="eyebrow">TON ESPACE PERSONNEL</p><h1>Bonjour, Santiago<span>.</span></h1><p class="muted">Hoy damos un paso más hacia B1.</p></div>
-        <div class="level-card"><span>NIVEL ACTUAL</span><strong>A2</strong><small>Objetivo · B1</small></div>
-      </section>
-
-      <section class="daily-card">
-        <div class="daily-top"><span class="pill">LECCIÓN DEL DÍA</span><span class="duration">◷ 8–10 min</span></div>
-        <h2>Passé composé</h2>
-        <p>Practica la elección entre <i>être</i> y <i>avoir</i> y la concordancia del participio.</p>
-        <div class="progress-track"><span id="daily-progress" style="width:0%"></span></div>
-        <div class="progress-caption"><span>Tu sesión de hoy</span><b id="daily-progress-caption">0 / 5 ejercicios</b></div>
-        <button class="primary" data-go="lesson">Empezar lección <span>→</span></button>
-      </section>
-
-      <section class="section-head"><div><p class="eyebrow">TON TABLEAU DE BORD</p><h2>Tu aprendizaje</h2></div><span class="live-dot">● EN MARCHA</span></section>
-      <section class="stats-grid">
-        <article class="stat-card"><div class="stat-icon blue">⌁</div><strong id="stat-done">0</strong><span>Ejercicios completados</span></article>
-        <article class="stat-card"><div class="stat-icon orange">◎</div><strong id="stat-errors">0</strong><span>Errores por repasar</span></article>
-        <article class="stat-card"><div class="stat-icon green">✓</div><strong id="stat-correct">0</strong><span>Respuestas correctas</span></article>
-        <article class="stat-card"><div class="stat-icon blue">%</div><strong id="accuracy-value">0%</strong><span>Precisión global</span></article>
-      </section>
-
-      <section class="section-head"><div><p class="eyebrow">TES POINTS À TRAVAILLER</p><h2>Mis temas</h2></div></section>
-      <section class="topics">
-        <button class="topic-row" data-go="lesson"><span class="topic-symbol red">Aa</span><span class="topic-copy"><b>Passé composé</b><small>Être / avoir · concordancia</small></span><span class="status needs">Practicar</span><span class="chevron">›</span></button>
-        <button class="topic-row" data-go="topics"><span class="topic-symbol amber">⏱</span><span class="topic-copy"><b>Depuis, il y a, pendant</b><small>Expresar duración y tiempo</small></span><span class="status review">Repasar</span><span class="chevron">›</span></button>
-        <button class="topic-row" data-go="topics"><span class="topic-symbol green">♀♂</span><span class="topic-copy"><b>Género de los sustantivos</b><small>Falsos amigos y diferencias</small></span><span class="status good">En progreso</span><span class="chevron">›</span></button>
-      </section>
-
-      <section class="section-head"><div><p class="eyebrow">TON PROFESSEUR</p><h2>¿Qué hacemos ahora?</h2></div></section>
-      <section class="quick-grid">
-        <button class="quick-card" data-go="chat"><span>💬</span><b>Hablar en francés</b><small>Practica una conversación</small></button>
-        <button class="quick-card" data-go="errors"><span>🧠</span><b>Mis errores</b><small>Revisa lo que cuesta</small></button>
-        <button class="quick-card" data-go="vocab"><span>📚</span><b>Vocabulario</b><small>Palabras y expresiones</small></button>
-        <button class="quick-card" data-go="progress"><span>📈</span><b>Mi evolución</b><small>Comprueba tus avances</small></button>
-      </section>
-    </main>
-    <nav class="bottom-nav"><button class="active" data-go="home"><span>⌂</span>Inicio</button><button data-go="lesson"><span>▤</span>Aprender</button><button data-go="chat"><span>◌</span>Profesor</button><button data-go="progress"><span>▥</span>Progreso</button></nav>
-  </div>
-  <dialog id="lesson-dialog" class="lesson-dialog">
-    <div class="dialog-head"><button class="back" id="close-lesson">←</button><span class="pill">GRAMMAIRE · A2</span><span class="step-count" id="step-count">1 / 5</span></div>
-    <div class="lesson-content"><p class="eyebrow">CHOISIS LA BONNE RÉPONSE</p><h2 id="question">Hier, nous ___ au cinéma.</h2><p class="muted" id="translation">Ayer fuimos al cine.</p><div class="answers" id="answers"></div><div id="feedback" class="feedback" aria-live="polite"></div><button id="next-question" class="primary" disabled>Comprobar respuesta</button></div>
-  </dialog>
-  <dialog id="errors-dialog" class="panel-dialog">
-    <div class="dialog-head"><button class="back" id="close-errors" aria-label="Cerrar">←</button><span class="pill">TON PROFIL · A2</span><span class="step-count">REPASO</span></div>
-    <div class="panel-content"><p class="eyebrow">APPRENDRE DE SES ERREURS</p><h2>Mis errores</h2><p id="errors-summary" class="muted"></p><div id="errors-empty" class="empty-state" hidden>¡Excelente! No tienes errores pendientes. Sigue practicando para mantenerlos dominados.</div><div id="errors-list" class="error-list"></div></div>
-  </dialog>
-  <dialog id="progress-dialog" class="panel-dialog">
-    <div class="dialog-head"><button class="back" id="close-progress" aria-label="Cerrar">←</button><span class="pill">TON ÉVOLUTION</span><span class="step-count">A2 → B1</span></div>
-    <div class="panel-content"><p class="eyebrow">TES RÉSULTATS</p><h2>Mi evolución</h2><p class="muted" id="progress-count">0 respuestas registradas</p><div class="progress-summary"><div><strong id="progress-total">0</strong><span>Respuestas</span></div><div><strong id="progress-correct">0</strong><span>Correctas</span></div><div><strong id="progress-pending">0</strong><span>Pendientes</span></div><div><strong id="progress-accuracy">0%</strong><span>Precisión</span></div></div><div class="progress-track"><span id="accuracy-bar" style="width:0%"></span></div><p class="notice">Estos datos se guardan en este navegador. Todavía no se sincronizan con otros dispositivos.</p></div>
-  </dialog>
-  <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script src="app.js"></script>
-</body>
-</html>
+<html lang="es"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#121b37">
+<meta name="description" content="French Lab 0.4.1 · Entrenamiento de francés A2, Unité 1 y repasos mixtos">
+<title>French Lab 0.4.1 · Unité 1</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="stylesheet" href="styles.css">
+</head><body><main id="app"></main><script src="french-lab-core.js" defer></script><script src="app.js" defer></script></body></html>
