@@ -1052,6 +1052,9 @@ const QUESTIONS=[
     "explain": "Bonne idée !"
   }
 ];
+// Se cargan los 64 ejercicios de la Unité 2, pero su estado inicial es pendiente.
+if (!globalThis.FrenchLabUnite2) throw new Error('Falta el archivo unite2.js');
+QUESTIONS.push(...globalThis.FrenchLabUnite2.questions);
 // Variantes equivalentes verificadas: no se infieren automáticamente sinónimos.
 const VALID_ALTERNATIVES={
   q071:['une carrière professionnelle'],
@@ -1067,6 +1070,7 @@ const CATEGORIES=[
   {id:'vocab',name:'Parcours et loisirs',detail:'Estudios, trabajo, vida personal y ocio',theory:'Parcours significa trayectoria; métier, oficio; formation, formación; diplôme, título; retraite, jubilación; loisirs, ocio; sortie, salida; spectacle, espectáculo. Aprende el género y la ortografía de cada palabra, con especial atención a los acentos.',example:'J’ai suivi une formation. Pendant mon temps libre, je vais au théâtre.'},
   {id:'comm',name:'Communication',detail:'Experiencias, gustos, propuestas y respuestas',theory:'Para contar experiencias: J’ai travaillé…, J’ai étudié… Para hablar de gustos: J’aime, J’adore, Je préfère. Para proponer algo: Ça te dit de… ? On se voit samedi ? Para aceptar: Avec plaisir ! D’accord ! Para rechazar: Désolé, je ne peux pas.',example:'— Ça te dit d’aller au cinéma ? — Avec plaisir !'}
 ];
+for(const category of globalThis.FrenchLabUnite2.categories)CATEGORIES.push(category);
 const UNITS=['Nouvelles vies','Je me souviens','Comme à la maison','Tous pareils, tous différents','En route vers le futur !','En cuisine','À votre santé !','Dans les médias','Consommer responsable','Envies d’ailleurs ?','De jolis parcours','Soif de nature'];
 const KEY='frenchLab_v04_unite1_progress'; // Clave de 0.4: conserva los progresos de la misma ubicación/origen.
 const Core=globalThis.FrenchLabCore;
@@ -1101,7 +1105,7 @@ const pct=(a,b)=>b?Math.round(a/b*100)+'%':'—';
 function save(){try{localStorage.setItem(KEY,JSON.stringify(state));storageError=false;return true}catch(e){storageError=true;console.warn('No se ha podido guardar el progreso',e);return false}}
 function available(unit){return QUESTIONS.some(q=>Number(q.unit??1)===Number(unit))}
 function normalizedStatuses(){
-  const statuses={...state.unitStatus};for(let i=1;i<=12;i++)if(!available(i))statuses[i]='pending';
+  const statuses={...state.unitStatus};for(let i=1;i<=12;i++)if(!available(i)||!['current','studied'].includes(statuses[i]))statuses[i]='pending';
   if(!Object.entries(statuses).some(([k,v])=>v==='current'&&available(Number(k)))){
     const availableStudied=Object.entries(statuses).filter(([k,v])=>v==='studied'&&available(Number(k)));
     if(availableStudied.length)state.unitNow=Number(availableStudied.at(-1)[0]);
@@ -1110,38 +1114,52 @@ function normalizedStatuses(){
 }
 function currentUnit(){const statuses=normalizedStatuses();const active=Object.entries(statuses).find(([k,v])=>v==='current'&&available(Number(k)));return active?Number(active[0]):state.unitNow||1}
 function summary(){return Core.summarize(state.attempts,QUESTIONS)}
+function pendingNow(){const statuses=normalizedStatuses();return summary().pending.filter(q=>statuses[Number(q.unit||1)]!=='pending')}
 function render(html){app.innerHTML=head()+html}
-function head(){return `<header class="top"><div><div class="tag">Ton laboratoire de français</div><div class="brand">🇫🇷 French Lab <span class="pill">0.4.1</span></div></div><button class="btn outline smallbtn" data-act="home">Inicio</button></header>`}
+function head(){return `<header class="top"><div><div class="tag">Ton laboratoire de français</div><div class="brand">🇫🇷 French Lab <span class="pill">0.5</span></div></div><button class="btn outline smallbtn" data-act="home">Inicio</button></header>`}
 function home(){
   session=null;
   const s=summary();
-  const buttons=`<div class="grid practice-grid"><button class="practice" data-act="start" data-mode="mix-unit"><span class="practice-icon">🎯</span><strong>Mix de la unidad actual</strong><span>10 preguntas de distintas materias de la unidad en estudio</span></button><button class="practice" data-act="start" data-mode="mix-course"><span class="practice-icon">🔀</span><strong>Mix de todo lo estudiado</strong><span>10 preguntas de todas las unidades activas, repartidas de forma equilibrada</span></button><button class="practice" data-act="start" data-mode="review"><span class="practice-icon">🔁</span><strong>Repasar fallos (${s.pending.length})</strong><span>Repite errores ortográficos y gramaticales pendientes</span></button></div>`;
-  render(`<section class="panel"><div class="tag">A2 · Unité ${currentUnit()} · ${esc(UNITS[currentUnit()-1])}</div><h1>Bonjour !</h1><p>La Unité 1 está en estudio. Las demás se incorporarán a medida que avances en clase.</p><div class="grid kpis"><div class="note"><div class="stat">${QUESTIONS.length}</div><small>Ejercicios disponibles</small></div><div class="note"><div class="stat">${state.completed}</div><small>Sesiones terminadas</small></div><div class="note"><div class="stat">${pct(s.correct,s.total)}</div><small>Aciertos completos</small></div><div class="note"><div class="stat">${s.accent}</div><small>Errores de acentuación</small></div></div><div class="actions"><button class="btn alt" data-act="evolution">Mi evolución y acentos</button></div>${storageError?'<p class="error">Atención: este navegador no está guardando el progreso. Exporta tus resultados.</p>':''}</section><section class="panel"><h2>¿Qué quieres practicar hoy?</h2>${buttons}</section><section class="panel"><h2>Materias de la Unité 1</h2><div class="grid">${CATEGORIES.map(c=>`<button class="topic" data-act="topic" data-cat="${c.id}"><span>20 ejercicios disponibles</span><strong>${esc(c.name)}</strong><span>${esc(c.detail)}</span></button>`).join('')}</div></section><section class="panel"><h2>Programa de las 12 unidades</h2><p class="muted">Los temas nuevos solo participarán en el mix acumulativo cuando tengan preguntas y estén marcados como «En curso» o «Estudiada».</p><div class="units">${UNITS.map((u,i)=>{const n=i+1,has=available(n),status=normalizedStatuses()[n]||'pending';return `<div class="unit"><span><strong>Unité ${n}</strong> · ${esc(u)}${has?'':'<br><small>Ejercicios aún no incorporados</small>'}</span>${has?`<select class="unit-select" data-unit="${n}" aria-label="Estado de la unidad ${n}"><option value="current" ${status==='current'?'selected':''}>En curso</option><option value="studied" ${status==='studied'?'selected':''}>Estudiada</option><option value="pending" ${status==='pending'?'selected':''}>Pendiente</option></select>`:'<span class="pill">Pendiente</span>'}</div>`}).join('')}</div></section><section class="panel"><h2>Guardar o recuperar progreso</h2><p>Los resultados se guardan únicamente en este navegador, sin sincronización entre ordenador y OPPO. Si pruebas otra carpeta o navegador, puedes exportar un JSON e importarlo.</p><div class="actions"><button class="btn alt" data-act="export">Exportar copia JSON</button><button class="btn outline" data-act="import">Importar copia JSON</button><button class="btn outline" data-act="reset">Borrar progreso</button></div><input hidden id="importFile" type="file" accept=".json,application/json"></section>`);
+  const statuses=normalizedStatuses(), active=currentUnit();
+  const buttons=`<div class="grid practice-grid"><button class="practice" data-act="start" data-mode="mix-unit"><span class="practice-icon">🎯</span><strong>Mix de la unidad actual</strong><span>10 preguntas de distintas materias de la unidad en estudio</span></button><button class="practice" data-act="start" data-mode="mix-course"><span class="practice-icon">🔀</span><strong>Mix de todo lo estudiado</strong><span>10 preguntas de todas las unidades activas, repartidas de forma equilibrada</span></button><button class="practice" data-act="start" data-mode="review"><span class="practice-icon">🔁</span><strong>Repasar fallos (${pendingNow().length})</strong><span>Repite errores ortográficos y gramaticales pendientes</span></button></div>`;
+  const categoriesHtml=[1,2].map(n=>{
+    const enabled=statuses[n]!=='pending';
+    const cats=CATEGORIES.filter(c=>Number(c.unit||1)===n);
+    return `<section class="panel"><div class="row"><h2>Unité ${n} · ${esc(UNITS[n-1])}</h2><span class="pill">${enabled?(statuses[n]==='current'?'En curso':'Estudiada'):'Pendiente'}</span></div>${!enabled?`<p>Los ${QUESTIONS.filter(q=>Number(q.unit||1)===n).length} ejercicios están preparados, pero no aparecerán en los entrenamientos hasta que actives esta unidad.</p><button class="btn alt" data-act="activate-unit" data-unit="${n}">Activar Unité ${n} cuando empiece en clase</button>`:`<div class="grid">${cats.map(c=>`<button class="topic" data-act="topic" data-cat="${c.id}"><span>${QUESTIONS.filter(q=>q.cat===c.id).length} ejercicios</span><strong>${esc(c.name)}</strong><span>${esc(c.detail)}</span></button>`).join('')}</div>`}</section>`;
+  }).join('');
+  render(`<section class="panel"><div class="tag">A2 · Unité ${active} · ${esc(UNITS[active-1])}</div><h1>Bonjour !</h1><p>${statuses[2]==='pending'?'La Unité 1 sigue disponible. La Unité 2 está preparada y no se mezclará hasta que tú la actives.':'La Unité 2 está activada. Puedes seguir repasando la Unité 1 desde el mix general y sus materias.'}</p><div class="grid kpis"><div class="note"><div class="stat">${QUESTIONS.filter(q=>statuses[Number(q.unit||1)]!=='pending').length}</div><small>Ejercicios activos</small></div><div class="note"><div class="stat">${state.completed}</div><small>Sesiones terminadas</small></div><div class="note"><div class="stat">${pct(s.correct,s.total)}</div><small>Aciertos completos</small></div><div class="note"><div class="stat">${s.accent}</div><small>Errores de acentuación</small></div></div><div class="actions"><button class="btn alt" data-act="evolution">Mi evolución y acentos</button></div>${storageError?'<p class="error">Atención: este navegador no está guardando el progreso. Exporta tus resultados.</p>':''}</section><section class="panel"><h2>¿Qué quieres practicar hoy?</h2>${buttons}</section>${categoriesHtml}<section class="panel"><h2>Programa de las 12 unidades</h2><p class="muted">Los temas nuevos entran en los mixes solo si su unidad está «En curso» o «Estudiada».</p><div class="units">${UNITS.map((u,i)=>{const n=i+1,has=available(n),status=statuses[n]||'pending';return `<div class="unit"><span><strong>Unité ${n}</strong> · ${esc(u)}${has?'':'<br><small>Ejercicios aún no incorporados</small>'}</span>${has?`<select class="unit-select" data-unit="${n}" aria-label="Estado de la unidad ${n}"><option value="current" ${status==='current'?'selected':''}>En curso</option><option value="studied" ${status==='studied'?'selected':''}>Estudiada</option><option value="pending" ${status==='pending'?'selected':''}>Pendiente</option></select>`:'<span class="pill">Pendiente</span>'}</div>`}).join('')}</div></section><section class="panel"><h2>Guardar o recuperar progreso</h2><p>Se guarda en este navegador, sin sincronización entre ordenador y OPPO. Puedes exportar e importar una copia JSON.</p><div class="actions"><button class="btn alt" data-act="export">Exportar copia JSON</button><button class="btn outline" data-act="import">Importar copia JSON</button><button class="btn outline" data-act="reset">Borrar progreso</button></div><input hidden id="importFile" type="file" accept=".json,application/json"></section>`);
 }
-function topic(id){const c=CATEGORIES.find(c=>c.id===id);if(!c)return;if(!state.seen[id]||!state.skip)theory(id,false);else start(id)}
+function topic(id){const c=CATEGORIES.find(c=>c.id===id);if(!c||normalizedStatuses()[Number(c.unit||1)]==='pending')return;if(!state.seen[id]||!state.skip)theory(id,false);else start(id)}
 function theory(id,fromSession){
   const c=CATEGORIES.find(c=>c.id===id);if(!c)return;
   state.seen[id]=true;save();
-  render(`<section class="panel"><span class="pill">Unité 1 · Explicación</span><h1>${esc(c.name)}</h1><p>${esc(c.theory)}</p><div class="note"><strong>Ejemplo</strong><p>${esc(c.example)}</p></div><label class="check"><input type="checkbox" id="skipTheory" ${state.skip?'checked':''}> Saltar automáticamente las explicaciones de temas ya vistos</label><div class="actions"><button class="btn" data-act="${fromSession?'back':'start'}" ${fromSession?'':`data-mode="${id}"`}>${fromSession?'Volver a la pregunta':'Empezar 10 ejercicios'}</button><button class="btn alt" data-act="home">Inicio</button></div></section>`);
+  render(`<section class="panel"><span class="pill">Unité ${Number(c.unit||1)} · Explicación</span><h1>${esc(c.name)}</h1><p>${esc(c.theory)}</p><div class="note"><strong>Ejemplo</strong><p>${esc(c.example)}</p></div><label class="check"><input type="checkbox" id="skipTheory" ${state.skip?'checked':''}> Saltar automáticamente las explicaciones de temas ya vistos</label><div class="actions"><button class="btn" data-act="${fromSession?'back':'start'}" ${fromSession?'':`data-mode="${id}"`}>${fromSession?'Volver a la pregunta':'Empezar 10 ejercicios'}</button><button class="btn alt" data-act="home">Inicio</button></div></section>`);
 }
 function start(mode){
   let pool;
   if(mode==='mix-unit')pool=Core.selectMixedQuestions(QUESTIONS,normalizedStatuses(),'unit',currentUnit(),10);
   else if(mode==='mix-course')pool=Core.selectMixedQuestions(QUESTIONS,normalizedStatuses(),'course',currentUnit(),10);
   else if(mode==='mixed')pool=Core.selectMixedQuestions(QUESTIONS,normalizedStatuses(),'unit',currentUnit(),10); // Alias antiguo.
-  else if(mode==='review')pool=Core.shuffle(summary().pending).slice(0,10);
+  else if(mode==='review')pool=Core.shuffle(pendingNow()).slice(0,10);
   else pool=Core.shuffle(QUESTIONS.filter(q=>q.cat===mode && normalizedStatuses()[Number(q.unit??1)]!=='pending')).slice(0,10);
-  if(!pool.length){render(`<section class="panel"><h2>Sin preguntas disponibles</h2><p>${mode==='review'?'Ahora mismo no tienes errores pendientes para repasar.':'Activa una unidad con preguntas para empezar esta sesión.'}</p><button class="btn" data-act="home">Volver al inicio</button></section>`);return}
+  if(!pool.length){session=null;render(`<section class="panel"><h2>Sin preguntas disponibles</h2><p>${mode==='review'?'Ahora mismo no tienes errores pendientes para repasar.':'Activa una unidad con preguntas para empezar esta sesión.'}</p><button class="btn" data-act="home">Volver al inicio</button></section>`);return}
   session={mode,pool,index:0,correct:0,accent:0,other:0,answered:false,selected:'',lastResult:null,choices:null};
   question(true);
 }
 function modeLabel(mode){return mode==='mix-course'?'Mix de todas las unidades':mode==='mix-unit'?'Mix de la unidad':mode==='review'?'Repasar mis fallos':CATEGORIES.find(c=>c.id===mode)?.name||'Practicar'}
+function answerInstruction(q){
+  if(q.mode==='choice')return 'Selecciona una opción.';
+  if(/^Completa\b/i.test(q.prompt))return 'Escribe solamente lo que falta en el hueco (___), no toda la frase.';
+  if(/^Nie:/i.test(q.prompt))return 'Escribe la frase negativa completa.';
+  if(/^Traduce\b/i.test(q.prompt))return 'Escribe la traducción completa en francés.';
+  return 'Escribe únicamente la respuesta solicitada.';
+}
 function question(reset){
   if(!session)return;
   const q=session.pool[session.index],c=CATEGORIES.find(c=>c.id===q.cat);
   if(reset){session.answered=false;session.selected='';session.lastResult=null;session.choices=q.mode==='choice'?Core.shuffle(q.options):null;}
   const mixed=['mix-unit','mix-course','mixed'].includes(session.mode);
-  render(`<section class="panel"><div class="row"><span class="pill">${mixed?esc(modeLabel(session.mode)):esc(c?.name||modeLabel(session.mode))}</span><small>${session.index+1} / ${session.pool.length}</small></div><div class="bar"><div style="width:${100*session.index/session.pool.length}%"></div></div><h2>${q.mode==='choice'?'Elige la respuesta correcta':'Escribe tu respuesta en francés'}</h2><h1 class="question">${esc(q.prompt)}</h1>${q.mode==='choice'?`<div id="choices">${session.choices.map((option,i)=>`<button class="choice" data-act="answer" data-index="${i}" ${session.answered?'disabled':''}>${esc(option)}</button>`).join('')}</div>`:`<form id="answerForm"><input class="textanswer" id="written" aria-label="Tu respuesta en francés" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Escribe aquí" ${session.answered?'disabled':''} required><button class="btn" type="submit" ${session.answered?'disabled':''}>Comprobar</button></form>`}<div id="feedback" aria-live="polite"></div><div class="actions"><button class="btn outline" data-act="theory" data-cat="${q.cat}">Ver explicación</button><button class="btn alt" data-act="home">Salir</button></div></section>`);
+  render(`<section class="panel"><div class="row"><span class="pill">${mixed?esc(modeLabel(session.mode)):esc(c?.name||modeLabel(session.mode))}</span><small>${session.index+1} / ${session.pool.length}</small></div><div class="bar"><div style="width:${100*session.index/session.pool.length}%"></div></div><h2>${q.mode==='choice'?'Elige la respuesta correcta':'Escribe tu respuesta en francés'}</h2><h1 class="question">${esc(q.prompt)}</h1><p class="question-instruction">${esc(answerInstruction(q))}</p>${q.mode==='choice'?`<div id="choices">${session.choices.map((option,i)=>`<button class="choice" data-act="answer" data-index="${i}" ${session.answered?'disabled':''}>${esc(option)}</button>`).join('')}</div>`:`<form id="answerForm"><input class="textanswer" id="written" aria-label="Tu respuesta en francés" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Escribe aquí" ${session.answered?'disabled':''} required><button class="btn" type="submit" ${session.answered?'disabled':''}>Comprobar</button></form>`}<div id="feedback" aria-live="polite"></div><div class="actions"><button class="btn outline" data-act="theory" data-cat="${q.cat}">Ver explicación</button><button class="btn alt" data-act="home">Salir</button></div></section>`);
   if(session.answered)showFeedback(q,session.selected,session.lastResult);
 }
 function answer(value){
@@ -1191,18 +1209,18 @@ function finish(){
 function evolution(){
   const s=summary();
   const rows=CATEGORIES.map(c=>{const r=s.byTopic.get(c.id)||{total:0,correct:0,accent:0,other:0};return `<tr><th scope="row">${esc(c.name)}</th><td>${r.total}</td><td>${pct(r.correct,r.total)}</td><td>${r.accent}</td></tr>`}).join('');
-  render(`<section class="panel"><div class="row"><h1>Mi evolución</h1><button class="btn alt smallbtn" data-act="home">Inicio</button></div><p>Progreso acumulado en este navegador. Las preguntas de versiones anteriores ya registradas conservan sus aciertos, aunque no podamos clasificar retroactivamente el tipo de todos los errores antiguos.</p><div class="grid kpis"><div class="note"><div class="stat">${s.total}</div><small>Respuestas registradas</small></div><div class="note"><div class="stat">${pct(s.correct,s.total)}</div><small>Correctas del todo</small></div><div class="note"><div class="stat">${s.accent}</div><small>Errores de acentos detectados</small></div><div class="note"><div class="stat">${s.pending.length}</div><small>Preguntas para repasar</small></div></div><h2>Resultados por materia</h2><div class="tablewrap"><table><thead><tr><th>Materia</th><th>Hechos</th><th>Aciertos</th><th>Acentos</th></tr></thead><tbody>${rows}</tbody></table></div><h2>Palabras cuyos acentos debes repasar</h2>${s.accentWords.length?`<div class="chips">${s.accentWords.slice(0,12).map(([word,n])=>`<span class="chip">${esc(word)} · ${n} ${n===1?'vez':'veces'}</span>`).join('')}</div>`:'<p>Aún no hay errores de acentuación detectados por esta versión.</p>'}<p><small>Los errores escritos de la versión anterior no tienen información suficiente para clasificarlos automáticamente como errores de acentos.</small></p><div class="actions"><button class="btn" data-act="start" data-mode="review">Repasar fallos (${s.pending.length})</button><button class="btn outline" data-act="home">Volver</button></div></section>`);
+  render(`<section class="panel"><div class="row"><h1>Mi evolución</h1><button class="btn alt smallbtn" data-act="home">Inicio</button></div><p>Progreso acumulado en este navegador. Las preguntas de versiones anteriores ya registradas conservan sus aciertos, aunque no podamos clasificar retroactivamente el tipo de todos los errores antiguos.</p><div class="grid kpis"><div class="note"><div class="stat">${s.total}</div><small>Respuestas registradas</small></div><div class="note"><div class="stat">${pct(s.correct,s.total)}</div><small>Correctas del todo</small></div><div class="note"><div class="stat">${s.accent}</div><small>Errores de acentos detectados</small></div><div class="note"><div class="stat">${pendingNow().length}</div><small>Preguntas para repasar</small></div></div><h2>Resultados por materia</h2><div class="tablewrap"><table><thead><tr><th>Materia</th><th>Hechos</th><th>Aciertos</th><th>Acentos</th></tr></thead><tbody>${rows}</tbody></table></div><h2>Palabras cuyos acentos debes repasar</h2>${s.accentWords.length?`<div class="chips">${s.accentWords.slice(0,12).map(([word,n])=>`<span class="chip">${esc(word)} · ${n} ${n===1?'vez':'veces'}</span>`).join('')}</div>`:'<p>Aún no hay errores de acentuación detectados por esta versión.</p>'}<p><small>Los errores escritos de la versión anterior no tienen información suficiente para clasificarlos automáticamente como errores de acentos.</small></p><div class="actions"><button class="btn" data-act="start" data-mode="review">Repasar fallos (${pendingNow().length})</button><button class="btn outline" data-act="home">Volver</button></div></section>`);
 }
 function exportProgress(){
-  const blob=new Blob([JSON.stringify({version:'0.4.1',exportedAt:new Date().toISOString(),progress:state},null,2)],{type:'application/json'});
-  const uri=URL.createObjectURL(blob),a=document.createElement('a');a.href=uri;a.download='french-lab-041-progreso.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(uri),1000);
+  const blob=new Blob([JSON.stringify({version:'0.5',exportedAt:new Date().toISOString(),progress:state},null,2)],{type:'application/json'});
+  const uri=URL.createObjectURL(blob),a=document.createElement('a');a.href=uri;a.download='french-lab-05-progreso.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(uri),1000);
 }
 async function importProgress(file){
   try{
     if(!file||file.size>3000000)throw new Error('El archivo no es válido o es demasiado grande (máximo 3 MB).');
     const data=JSON.parse(await file.text());
     const imported=data?.progress;
-    if(!imported || typeof imported!=='object' || !Array.isArray(imported.attempts)||typeof imported.completed!=='number')throw new Error('No es una exportación compatible de French Lab 0.4/0.4.1.');
+    if(!imported || typeof imported!=='object' || !Array.isArray(imported.attempts)||typeof imported.completed!=='number')throw new Error('No es una exportación compatible de French Lab 0.4, 0.4.1 o 0.5.');
     if(!confirm('Importar reemplazará los resultados locales de esta versión. ¿Has exportado una copia si quieres conservar los actuales?'))return;
     state=sanitizeProgress(imported);save();home();alert('Copia de progreso importada.');
   }catch(err){alert('No se pudo importar: '+err.message)}
@@ -1210,6 +1228,8 @@ async function importProgress(file){
 function reset(){if(confirm('¿Borrar el progreso de French Lab 0.4/0.4.1 de este navegador? Esta acción no se puede deshacer sin una copia JSON.')){state=defaults();save();home()}}
 function changeUnitStatus(number,value){
   const n=Number(number);if(!available(n)||!['studied','current','pending'].includes(value))return;
+  if(value==='pending' && !Object.entries(normalizedStatuses()).some(([k,v])=>Number(k)!==n && (v==='current'||v==='studied'))){alert('Deja al menos una unidad estudiada o en curso.');home();return;}
+  if(value==='current' && n===2 && normalizedStatuses()[2]==='pending' && !confirm('¿Empezamos la Unité 2? Sus ejercicios entrarán en las sesiones mixtas.')){home();return;}
   if(value==='current')for(const [k,v] of Object.entries(state.unitStatus))if(v==='current'&&Number(k)!==n)state.unitStatus[k]='studied';
   state.unitStatus[n]=value;
   if(value!=='pending')state.unitNow=n;
@@ -1220,6 +1240,7 @@ app.addEventListener('click',event=>{
   switch(b.dataset.act){
     case 'home':home();break;
     case 'topic':topic(b.dataset.cat);break;
+    case 'activate-unit':changeUnitStatus(b.dataset.unit,'current');break;
     case 'start':start(b.dataset.mode);break;
     case 'answer':answer(b.dataset.index);break;
     case 'next':next();break;

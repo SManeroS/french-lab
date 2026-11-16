@@ -1,0 +1,10 @@
+.question-instruction {
+  background: #1a4150;
+  border-left: 3px solid #70d8de;
+  color: #e0faff;
+  padding: 10px 12px;
+  border-radius: 8px;
+  margin: 12px 0;
+  font-size: 14px;
+  line-height: 1.4;
+}
