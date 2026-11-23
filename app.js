@@ -1,5 +1,5 @@
 'use strict';
-/* French Lab 0.4.1 · 100 ejercicios originales de la versión 0.4, conservados. */
+/* French Lab 0.6 · conserva 100 ejercicios de Unité 1 y amplía Unité 2 a 100. */
 const QUESTIONS=[
   {
     "id": "q001",
@@ -1052,7 +1052,7 @@ const QUESTIONS=[
     "explain": "Bonne idée !"
   }
 ];
-// Se cargan los 64 ejercicios de la Unité 2, pero su estado inicial es pendiente.
+// Se cargan los 100 ejercicios de la Unité 2. La unidad sigue pendiente hasta que el alumno la active.
 if (!globalThis.FrenchLabUnite2) throw new Error('Falta el archivo unite2.js');
 QUESTIONS.push(...globalThis.FrenchLabUnite2.questions);
 // Variantes equivalentes verificadas: no se infieren automáticamente sinónimos.
@@ -1072,13 +1072,15 @@ const CATEGORIES=[
 ];
 for(const category of globalThis.FrenchLabUnite2.categories)CATEGORIES.push(category);
 const UNITS=['Nouvelles vies','Je me souviens','Comme à la maison','Tous pareils, tous différents','En route vers le futur !','En cuisine','À votre santé !','Dans les médias','Consommer responsable','Envies d’ailleurs ?','De jolis parcours','Soif de nature'];
-const KEY='frenchLab_v04_unite1_progress'; // Clave de 0.4: conserva los progresos de la misma ubicación/origen.
+const KEY='frenchLab_v04_unite1_progress'; // NO CAMBIAR: mantiene el progreso local de 0.4, 0.4.1 y 0.5.
 const Core=globalThis.FrenchLabCore;
 if(!Core)throw new Error('No se ha cargado french-lab-core.js');
 const app=document.getElementById('app');
 let session=null, storageError=false;
 const idToQuestion=new Map(QUESTIONS.map(q=>[q.id,q]));
-function defaults(){return {seen:{},skip:false,attempts:[],completed:0,unitStatus:{1:'current'},unitNow:1,sessionHistory:[]}}
+const UNIT2_TOPICS=globalThis.FrenchLabUnite2.categories.map(c=>c.id);
+function firstUnit2Topics(){return Object.fromEntries(UNIT2_TOPICS.map(id=>[id,id==='imparfait']));}
+function defaults(){return {seen:{},skip:false,attempts:[],completed:0,unitStatus:{1:'current'},unitNow:1,unit2Topics:firstUnit2Topics(),sessionHistory:[]}}
 function sanitizeProgress(raw){
   const base=defaults();
   if(!raw||typeof raw!=='object'||Array.isArray(raw))return base;
@@ -1094,8 +1096,13 @@ function sanitizeProgress(raw){
   }
   const seen={};if(raw.seen&&typeof raw.seen==='object')for(const c of CATEGORIES)if(raw.seen[c.id])seen[c.id]=true;
   const now=Number(raw.unitNow)||1;
+  // Migración sin pérdidas: quien YA activó U2 en 0.5 conserva todas sus materias habilitadas.
+  // Si era pendiente, se habilita solo imparfait al activarla por primera vez.
+  const legacyActive=['current','studied'].includes(status[2]);
+  const unit2Topics=Object.fromEntries(UNIT2_TOPICS.map(id=>[id,
+    raw.unit2Topics && typeof raw.unit2Topics[id]==='boolean' ? raw.unit2Topics[id] : (legacyActive ? id!=='recits' : id==='imparfait')]));
   return {seen,skip:!!raw.skip,attempts,completed:Number.isFinite(raw.completed)?Math.max(0,Math.floor(raw.completed)):0,
-    unitStatus:status,unitNow:now>=1&&now<=12?now:1,
+    unitStatus:status,unitNow:now>=1&&now<=12?now:1,unit2Topics,
     sessionHistory:Array.isArray(raw.sessionHistory)?raw.sessionHistory.slice(-100).filter(x=>x&&typeof x==='object'):[]};
 }
 function load(){try{return sanitizeProgress(JSON.parse(localStorage.getItem(KEY)))}catch{return defaults()}}
@@ -1113,10 +1120,12 @@ function normalizedStatuses(){
   return statuses;
 }
 function currentUnit(){const statuses=normalizedStatuses();const active=Object.entries(statuses).find(([k,v])=>v==='current'&&available(Number(k)));return active?Number(active[0]):state.unitNow||1}
+function topicEnabled(cat){return !UNIT2_TOPICS.includes(cat) || state.unit2Topics?.[cat]===true;}
+function practiceQuestions(){return QUESTIONS.filter(q=>topicEnabled(q.cat));}
 function summary(){return Core.summarize(state.attempts,QUESTIONS)}
-function pendingNow(){const statuses=normalizedStatuses();return summary().pending.filter(q=>statuses[Number(q.unit||1)]!=='pending')}
+function pendingNow(){const statuses=normalizedStatuses();return summary().pending.filter(q=>statuses[Number(q.unit||1)]!=='pending' && topicEnabled(q.cat))}
 function render(html){app.innerHTML=head()+html}
-function head(){return `<header class="top"><div><div class="tag">Ton laboratoire de français</div><div class="brand">🇫🇷 French Lab <span class="pill">0.5</span></div></div><button class="btn outline smallbtn" data-act="home">Inicio</button></header>`}
+function head(){return `<header class="top"><div><div class="tag">Ton laboratoire de français</div><div class="brand">🇫🇷 French Lab <span class="pill">0.6</span></div></div><button class="btn outline smallbtn" data-act="home">Inicio</button></header>`}
 function home(){
   session=null;
   const s=summary();
@@ -1125,9 +1134,14 @@ function home(){
   const categoriesHtml=[1,2].map(n=>{
     const enabled=statuses[n]!=='pending';
     const cats=CATEGORIES.filter(c=>Number(c.unit||1)===n);
-    return `<section class="panel"><div class="row"><h2>Unité ${n} · ${esc(UNITS[n-1])}</h2><span class="pill">${enabled?(statuses[n]==='current'?'En curso':'Estudiada'):'Pendiente'}</span></div>${!enabled?`<p>Los ${QUESTIONS.filter(q=>Number(q.unit||1)===n).length} ejercicios están preparados, pero no aparecerán en los entrenamientos hasta que actives esta unidad.</p><button class="btn alt" data-act="activate-unit" data-unit="${n}">Activar Unité ${n} cuando empiece en clase</button>`:`<div class="grid">${cats.map(c=>`<button class="topic" data-act="topic" data-cat="${c.id}"><span>${QUESTIONS.filter(q=>q.cat===c.id).length} ejercicios</span><strong>${esc(c.name)}</strong><span>${esc(c.detail)}</span></button>`).join('')}</div>`}</section>`;
+    const cards=cats.map(c=>{
+      const topicReady=topicEnabled(c.id);
+      const button=`<button class="topic" data-act="topic" data-cat="${c.id}" ${topicReady?'':'disabled'}><span>${QUESTIONS.filter(q=>q.cat===c.id).length} ejercicios</span><strong>${esc(c.name)}</strong><span>${esc(c.detail)}</span></button>`;
+      return n===2?`<div class="topic-shell">${button}<label class="topic-control"><input type="checkbox" class="topic-enable" data-cat="${c.id}" ${topicReady?'checked':''}> Incluir este tema en los ejercicios</label></div>`:button;
+    }).join('');
+    return `<section class="panel"><div class="row"><h2>Unité ${n} · ${esc(UNITS[n-1])}</h2><span class="pill">${enabled?(statuses[n]==='current'?'En curso':'Estudiada'):'Pendiente'}</span></div>${!enabled?`<p>Los ${QUESTIONS.filter(q=>Number(q.unit||1)===n).length} ejercicios están preparados, pero no aparecerán en los entrenamientos hasta que actives esta unidad. Cuando la actives, empezará solo con imparfait; podrás ir añadiendo los demás temas.</p><button class="btn alt" data-act="activate-unit" data-unit="${n}">Activar Unité ${n} cuando empiece en clase</button>`:`${n===2?'<p class="muted">Marca únicamente las materias que ya habéis estudiado. Las demás no entrarán en los mixes ni en los repasos hasta que las actives.</p>':''}<div class="grid">${cards}</div>`}</section>`;
   }).join('');
-  render(`<section class="panel"><div class="tag">A2 · Unité ${active} · ${esc(UNITS[active-1])}</div><h1>Bonjour !</h1><p>${statuses[2]==='pending'?'La Unité 1 sigue disponible. La Unité 2 está preparada y no se mezclará hasta que tú la actives.':'La Unité 2 está activada. Puedes seguir repasando la Unité 1 desde el mix general y sus materias.'}</p><div class="grid kpis"><div class="note"><div class="stat">${QUESTIONS.filter(q=>statuses[Number(q.unit||1)]!=='pending').length}</div><small>Ejercicios activos</small></div><div class="note"><div class="stat">${state.completed}</div><small>Sesiones terminadas</small></div><div class="note"><div class="stat">${pct(s.correct,s.total)}</div><small>Aciertos completos</small></div><div class="note"><div class="stat">${s.accent}</div><small>Errores de acentuación</small></div></div><div class="actions"><button class="btn alt" data-act="evolution">Mi evolución y acentos</button></div>${storageError?'<p class="error">Atención: este navegador no está guardando el progreso. Exporta tus resultados.</p>':''}</section><section class="panel"><h2>¿Qué quieres practicar hoy?</h2>${buttons}</section>${categoriesHtml}<section class="panel"><h2>Programa de las 12 unidades</h2><p class="muted">Los temas nuevos entran en los mixes solo si su unidad está «En curso» o «Estudiada».</p><div class="units">${UNITS.map((u,i)=>{const n=i+1,has=available(n),status=statuses[n]||'pending';return `<div class="unit"><span><strong>Unité ${n}</strong> · ${esc(u)}${has?'':'<br><small>Ejercicios aún no incorporados</small>'}</span>${has?`<select class="unit-select" data-unit="${n}" aria-label="Estado de la unidad ${n}"><option value="current" ${status==='current'?'selected':''}>En curso</option><option value="studied" ${status==='studied'?'selected':''}>Estudiada</option><option value="pending" ${status==='pending'?'selected':''}>Pendiente</option></select>`:'<span class="pill">Pendiente</span>'}</div>`}).join('')}</div></section><section class="panel"><h2>Guardar o recuperar progreso</h2><p>Se guarda en este navegador, sin sincronización entre ordenador y OPPO. Puedes exportar e importar una copia JSON.</p><div class="actions"><button class="btn alt" data-act="export">Exportar copia JSON</button><button class="btn outline" data-act="import">Importar copia JSON</button><button class="btn outline" data-act="reset">Borrar progreso</button></div><input hidden id="importFile" type="file" accept=".json,application/json"></section>`);
+  render(`<section class="panel"><div class="tag">A2 · Unité ${active} · ${esc(UNITS[active-1])}</div><h1>Bonjour !</h1><p>${statuses[2]==='pending'?'La Unité 1 sigue disponible. La Unité 2 está preparada y no se mezclará hasta que tú la actives.':'La Unité 2 está activada. Selecciona abajo solo las materias que ya habéis trabajado en clase; la Unité 1 continúa disponible.'}</p><div class="grid kpis"><div class="note"><div class="stat">${practiceQuestions().filter(q=>statuses[Number(q.unit||1)]!=='pending').length}</div><small>Ejercicios activos</small></div><div class="note"><div class="stat">${state.completed}</div><small>Sesiones terminadas</small></div><div class="note"><div class="stat">${pct(s.correct,s.total)}</div><small>Aciertos completos</small></div><div class="note"><div class="stat">${s.accent}</div><small>Errores de acentuación</small></div></div><div class="actions"><button class="btn alt" data-act="evolution">Mi evolución y acentos</button></div>${storageError?'<p class="error">Atención: este navegador no está guardando el progreso. Exporta tus resultados.</p>':''}</section><section class="panel"><h2>¿Qué quieres practicar hoy?</h2>${buttons}</section>${categoriesHtml}<section class="panel"><h2>Programa de las 12 unidades</h2><p class="muted">Los temas nuevos entran en los mixes solo si su unidad está «En curso» o «Estudiada».</p><div class="units">${UNITS.map((u,i)=>{const n=i+1,has=available(n),status=statuses[n]||'pending';return `<div class="unit"><span><strong>Unité ${n}</strong> · ${esc(u)}${has?'':'<br><small>Ejercicios aún no incorporados</small>'}</span>${has?`<select class="unit-select" data-unit="${n}" aria-label="Estado de la unidad ${n}"><option value="current" ${status==='current'?'selected':''}>En curso</option><option value="studied" ${status==='studied'?'selected':''}>Estudiada</option><option value="pending" ${status==='pending'?'selected':''}>Pendiente</option></select>`:'<span class="pill">Pendiente</span>'}</div>`}).join('')}</div></section><section class="panel"><h2>Guardar o recuperar progreso</h2><p>Se guarda en este navegador, sin sincronización entre ordenador y OPPO. Puedes exportar e importar una copia JSON.</p><div class="actions"><button class="btn alt" data-act="export">Exportar copia JSON</button><button class="btn outline" data-act="import">Importar copia JSON</button><button class="btn outline" data-act="reset">Borrar progreso</button></div><input hidden id="importFile" type="file" accept=".json,application/json"></section>`);
 }
 function topic(id){const c=CATEGORIES.find(c=>c.id===id);if(!c||normalizedStatuses()[Number(c.unit||1)]==='pending')return;if(!state.seen[id]||!state.skip)theory(id,false);else start(id)}
 function theory(id,fromSession){
@@ -1137,12 +1151,12 @@ function theory(id,fromSession){
 }
 function start(mode){
   let pool;
-  if(mode==='mix-unit')pool=Core.selectMixedQuestions(QUESTIONS,normalizedStatuses(),'unit',currentUnit(),10);
-  else if(mode==='mix-course')pool=Core.selectMixedQuestions(QUESTIONS,normalizedStatuses(),'course',currentUnit(),10);
-  else if(mode==='mixed')pool=Core.selectMixedQuestions(QUESTIONS,normalizedStatuses(),'unit',currentUnit(),10); // Alias antiguo.
+  if(mode==='mix-unit')pool=Core.selectMixedQuestions(practiceQuestions(),normalizedStatuses(),'unit',currentUnit(),10);
+  else if(mode==='mix-course')pool=Core.selectMixedQuestions(practiceQuestions(),normalizedStatuses(),'course',currentUnit(),10);
+  else if(mode==='mixed')pool=Core.selectMixedQuestions(practiceQuestions(),normalizedStatuses(),'unit',currentUnit(),10); // Alias antiguo.
   else if(mode==='review')pool=Core.shuffle(pendingNow()).slice(0,10);
-  else pool=Core.shuffle(QUESTIONS.filter(q=>q.cat===mode && normalizedStatuses()[Number(q.unit??1)]!=='pending')).slice(0,10);
-  if(!pool.length){session=null;render(`<section class="panel"><h2>Sin preguntas disponibles</h2><p>${mode==='review'?'Ahora mismo no tienes errores pendientes para repasar.':'Activa una unidad con preguntas para empezar esta sesión.'}</p><button class="btn" data-act="home">Volver al inicio</button></section>`);return}
+  else pool=Core.shuffle(practiceQuestions().filter(q=>q.cat===mode && normalizedStatuses()[Number(q.unit??1)]!=='pending')).slice(0,10);
+  if(!pool.length){session=null;render(`<section class="panel"><h2>Sin preguntas disponibles</h2><p>${mode==='review'?'Ahora mismo no tienes errores pendientes para repasar.':'Activa al menos una materia de la unidad para empezar esta sesión.'}</p><button class="btn" data-act="home">Volver al inicio</button></section>`);return}
   session={mode,pool,index:0,correct:0,accent:0,other:0,answered:false,selected:'',lastResult:null,choices:null};
   question(true);
 }
@@ -1212,20 +1226,20 @@ function evolution(){
   render(`<section class="panel"><div class="row"><h1>Mi evolución</h1><button class="btn alt smallbtn" data-act="home">Inicio</button></div><p>Progreso acumulado en este navegador. Las preguntas de versiones anteriores ya registradas conservan sus aciertos, aunque no podamos clasificar retroactivamente el tipo de todos los errores antiguos.</p><div class="grid kpis"><div class="note"><div class="stat">${s.total}</div><small>Respuestas registradas</small></div><div class="note"><div class="stat">${pct(s.correct,s.total)}</div><small>Correctas del todo</small></div><div class="note"><div class="stat">${s.accent}</div><small>Errores de acentos detectados</small></div><div class="note"><div class="stat">${pendingNow().length}</div><small>Preguntas para repasar</small></div></div><h2>Resultados por materia</h2><div class="tablewrap"><table><thead><tr><th>Materia</th><th>Hechos</th><th>Aciertos</th><th>Acentos</th></tr></thead><tbody>${rows}</tbody></table></div><h2>Palabras cuyos acentos debes repasar</h2>${s.accentWords.length?`<div class="chips">${s.accentWords.slice(0,12).map(([word,n])=>`<span class="chip">${esc(word)} · ${n} ${n===1?'vez':'veces'}</span>`).join('')}</div>`:'<p>Aún no hay errores de acentuación detectados por esta versión.</p>'}<p><small>Los errores escritos de la versión anterior no tienen información suficiente para clasificarlos automáticamente como errores de acentos.</small></p><div class="actions"><button class="btn" data-act="start" data-mode="review">Repasar fallos (${pendingNow().length})</button><button class="btn outline" data-act="home">Volver</button></div></section>`);
 }
 function exportProgress(){
-  const blob=new Blob([JSON.stringify({version:'0.5',exportedAt:new Date().toISOString(),progress:state},null,2)],{type:'application/json'});
-  const uri=URL.createObjectURL(blob),a=document.createElement('a');a.href=uri;a.download='french-lab-05-progreso.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(uri),1000);
+  const blob=new Blob([JSON.stringify({version:'0.6',exportedAt:new Date().toISOString(),progress:state},null,2)],{type:'application/json'});
+  const uri=URL.createObjectURL(blob),a=document.createElement('a');a.href=uri;a.download='french-lab-06-progreso.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(uri),1000);
 }
 async function importProgress(file){
   try{
     if(!file||file.size>3000000)throw new Error('El archivo no es válido o es demasiado grande (máximo 3 MB).');
     const data=JSON.parse(await file.text());
     const imported=data?.progress;
-    if(!imported || typeof imported!=='object' || !Array.isArray(imported.attempts)||typeof imported.completed!=='number')throw new Error('No es una exportación compatible de French Lab 0.4, 0.4.1 o 0.5.');
+    if(!imported || typeof imported!=='object' || !Array.isArray(imported.attempts)||typeof imported.completed!=='number')throw new Error('No es una exportación compatible de French Lab 0.4 a 0.6.');
     if(!confirm('Importar reemplazará los resultados locales de esta versión. ¿Has exportado una copia si quieres conservar los actuales?'))return;
     state=sanitizeProgress(imported);save();home();alert('Copia de progreso importada.');
   }catch(err){alert('No se pudo importar: '+err.message)}
 }
-function reset(){if(confirm('¿Borrar el progreso de French Lab 0.4/0.4.1 de este navegador? Esta acción no se puede deshacer sin una copia JSON.')){state=defaults();save();home()}}
+function reset(){if(confirm('¿Borrar todo el progreso de French Lab de este navegador? Esta acción no se puede deshacer sin una copia JSON.')){state=defaults();save();home()}}
 function changeUnitStatus(number,value){
   const n=Number(number);if(!available(n)||!['studied','current','pending'].includes(value))return;
   if(value==='pending' && !Object.entries(normalizedStatuses()).some(([k,v])=>Number(k)!==n && (v==='current'||v==='studied'))){alert('Deja al menos una unidad estudiada o en curso.');home();return;}
@@ -1256,6 +1270,10 @@ app.addEventListener('change',e=>{
   if(e.target.id==='skipTheory'){state.skip=e.target.checked;save()}
   else if(e.target.id==='importFile'){const f=e.target.files?.[0];if(f)importProgress(f);e.target.value='';}
   else if(e.target.matches('.unit-select'))changeUnitStatus(e.target.dataset.unit,e.target.value);
+  else if(e.target.matches('.topic-enable')){
+    const cat=e.target.dataset.cat;
+    if(UNIT2_TOPICS.includes(cat)){state.unit2Topics[cat]=e.target.checked;save();home();}
+  }
 });
 app.addEventListener('submit',e=>{if(e.target.id==='answerForm'){e.preventDefault();answer(document.getElementById('written').value)}});
 if('serviceWorker' in navigator && /^https?:$/.test(location.protocol))navigator.serviceWorker.register('./sw.js').catch(()=>{});

@@ -1,20 +1,24 @@
-# Pruebas técnicas — French Lab 0.5
+# French Lab 0.6 — comprobaciones técnicas
 
-## Verificado automáticamente
+**Origen:** ZIP real `French_Lab_0.5_pruebas.zip`, recuperado del archivo de French Lab 0.5 y comparado con la nueva versión.
 
-- Sintaxis válida de los JavaScript y estructura correcta del manifiesto PWA.
-- Conservación de los 100 ejercicios de la Unité 1 y 64 nuevos de la Unité 2, con IDs únicos, opciones correctas presentes y categorías consistentes.
-- La mitad de las preguntas de la Unité 2 (32) son de elección múltiple y la mitad (32) son de respuesta escrita.
-- Detección de acentos (por ejemplo `etes arrivées` → `êtes arrivées`) y aceptación de alternativas expresamente registradas.
-- Unité 2 inicialmente pendiente, exclusión de los dos mixes; activación manual, con transición de Unité 1 a estudiada.
-- Una vez activada la Unité 2, mix de 10 preguntas con reparto equilibrado entre unidades y mix de la unidad actual solo con Unité 2.
-- Distinción de instrucciones para completar hueco, negar frases, traducir y elegir opción.
-- Mantenimiento de la clave de progreso de 0.4/0.4.1 y lectura de datos anteriores sin reiniciarlos.
+**Pruebas efectuadas:**
 
-## Pendiente de verificación con el usuario
+1. Los 100 ejercicios originales de Unité 1 y los 64 anteriores de Unité 2 se mantienen con IDs y contenido originales.
+2. Total: 212 ejercicios (100 U1 + 112 U2), IDs únicos, todas las preguntas con respuesta y explicación.
+3. Las preguntas de elección múltiple contienen su respuesta correcta y no presentan opciones repetidas.
+4. Unité 2 pendiente: el mix general utiliza exclusivamente Unité 1.
+5. Al activar por primera vez la Unité 2 se habilita solo *l'imparfait*; las otras cuatro materias siguen deshabilitadas hasta marcarlas.
+6. Los mixes solo incluyen materias activadas; el mix general equilibra el reparto entre U1 y U2.
+7. Activar un nuevo tema mediante su casilla no reinicia el estado ni las sesiones.
+8. La configuración por materias se conserva después de guardar y reabrir.
+9. Una importación/migración desde un progreso 0.5 con U2 ya activada mantiene las 4 materias antiguas habilitadas y deja la nueva de comunicación pendiente.
+10. Se preservan los contadores, intentos e historial de sesiones de progreso 0.5.
+11. La corrección distingue acentos/cedilla omitidos: `etait`/`était`, `commencaient`/`commençaient`.
+12. `index.html` referencia todos los archivos JavaScript y CSS locales; sintaxis de los scripts validada.
 
-- Apertura visual y flujo completo en Chrome/Windows.
-- Correcciones pedagógicas de las 64 preguntas nuevas con respuestas reales.
-- Actualización desde HTTPS y funcionamiento instalado en OPPO, después de las pruebas locales.
+**Herramientas:** Node.js (`node --check` y pruebas con VM aislada). Las 11 comprobaciones agrupadas del script de pruebas pasaron.
 
-El entorno automático no pudo iniciar Chromium por una restricción del sistema. Por tanto, **no se afirma haber realizado una prueba interactiva real en navegador**. Sí se ejecutaron pruebas de lógica y generación de pantallas con Node.
+**Limitación de verificación visual:** Se intentó abrir la aplicación mediante Chromium/Playwright desde `file://` y `http://127.0.0.1`, pero ambos accesos fueron bloqueados por la política del entorno (`net::ERR_BLOCKED_BY_ADMINISTRATOR`). Por ello no se afirma haber probado visualmente la interfaz ni la instalación PWA desde este entorno.
+
+**Actualizaciones externas:** Ninguna. No se ha modificado GitHub ni la instalación Android. El progreso del usuario no se ha leído ni modificado: las pruebas de migración utilizan datos sintéticos.

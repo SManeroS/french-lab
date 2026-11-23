@@ -1,39 +1,34 @@
-# French Lab 0.5 — A2, Unités 1 y 2
+# French Lab 0.6 — A2 · Unités 1 y 2
 
-Esta es una **versión de pruebas** de French Lab, preparada sobre el código de la versión 0.4.1 que ya utilizas. Se conservan los 100 ejercicios de la Unité 1 y se añaden 64 ejercicios nuevos de la Unité 2 «Je me souviens».
+Versión de prueba preparada **sobre los archivos reales de French Lab 0.5**. No se ha actualizado GitHub ni el OPPO. Mantiene los 100 ejercicios originales de la Unité 1 y los 64 de la Unité 2; **añade 48 preguntas originales nuevas** a la Unité 2 (212 ejercicios en total).
 
 ## Novedades
 
-- **Unité 2 preparada pero desactivada:** 16 ejercicios de *imparfait*, 16 de pronombres *y/en*, 16 de posición del adjetivo y 16 de recuerdos y meteorología. Incluyen explicaciones y correcciones. En cada materia, la mitad son de elección múltiple y la otra mitad se responden escribiendo.
-- **A tu ritmo:** la Unité 2 aparece en el programa como «Pendiente». Cuando la empecéis en clase, pulsa **«Activar Unité 2 cuando empiece en clase»** y confirma. La Unité 1 pasará a «Estudiada» y seguirá disponible para repasar.
-- **Mix de la unidad actual:** mezcla las materias de la unidad que tengas en curso, sin anunciar la regla de cada pregunta.
-- **Mix de todo lo estudiado:** incluye las unidades estudiadas y la actual, y reparte las preguntas entre ellas. Excluye las pendientes.
-- **Instrucciones claras:** las preguntas indican si debes escribir *solo el hueco*, la *frase negativa completa* o una *traducción completa*. Las de selección indican que debes elegir una opción.
-- **Seguimiento:** se conservan las estadísticas, los errores de acentuación, los repasos y las explicaciones que puedes omitir o recuperar.
+- **Unité 2 «Je me souviens»: 112 ejercicios** repartidos en cinco materias: 25 de *imparfait*, 25 de pronombres *y/en*, 25 de posición de adjetivos, 25 de recuerdos y meteorología, y 12 de comunicación sobre recuerdos y gustos. Los 48 nuevos incluyen conjugaciones frecuentes y ortografía con acentos/cedilla, colocación de *y/en* ante infinitivo y pasado compuesto, *bel/vieil* ante vocal, vocabulario de infancia y tiempo atmosférico.
+- **Materias activables individualmente:** al activar por primera vez la Unité 2, entra únicamente *l'imparfait*. Cuando se estudien las otras materias, basta con marcar «Incluir este tema en los ejercicios» en sus tarjetas. Los mixes y el repaso pendiente excluyen las materias sin activar. La Unité 1 permanece disponible para repasar.
+- **Compatibilidad con versiones anteriores:** si ya tenías la Unité 2 activada en French Lab 0.5, las materias previamente existentes permanecen activas al actualizar; tú puedes desactivar las que todavía no hayas trabajado. De este modo no se alteran tus decisiones anteriores.
+- **Misma clave de almacenamiento** (`frenchLab_v04_unite1_progress`), IDs originales conservados y formato de progreso extendido sin eliminar campos. Exportar/importar sigue disponible. Los resultados se guardan solo en el navegador del dispositivo, sin sincronización.
+- **Seguimiento:** conserva los mixes, la corrección de acentos, las explicaciones opcionales, los errores pendientes y el historial de sesiones.
 
-## Cómo probarla sin alterar tu teléfono
+## Cómo probar con seguridad
 
-1. **Haz una copia de tus progresos del OPPO**: abre French Lab 0.4.1, entra al final de Inicio y pulsa «Exportar copia JSON». Guarda ese archivo donde puedas encontrarlo. **No borres datos ni desinstales la aplicación**.
-2. En Windows, descomprime el ZIP en una carpeta nueva y abre `index.html` con Chrome. Conserva la carpeta de la versión 0.4.1.
-3. Comprueba que aparece **French Lab 0.5** y que la Unité 2 indica «Pendiente». Si practicas sin activarla, las preguntas deben seguir siendo de la Unité 1.
-4. Para **probar** la Unité 2 en Windows, pulsa su botón de activación y prueba un ejercicio de *imparfait* y ambos mixes. Esa activación solo afecta a los datos de ese navegador; **no activa automáticamente la unidad en el OPPO**.
-5. Comprueba las instrucciones de varias preguntas escritas y una de elección múltiple. Cierra la pestaña y vuelve a abrir para revisar las estadísticas.
+1. **En el OPPO**, con la versión actual 0.5, exporta el progreso y guarda el archivo de copia de seguridad. No borres la aplicación ni sus datos.
+2. **En Windows**, extrae este ZIP en una carpeta nueva. No lo mezcles con los archivos de la versión 0.5.
+3. Abre `index.html` en Chrome. Deberías ver **French Lab 0.6**, Unité 1 activa y Unité 2 pendiente salvo que el navegador ya conserve progreso de una versión anterior en ese mismo origen.
+4. En el ordenador puedes activar la Unité 2 para probar: aparece *imparfait* marcada y las otras cuatro materias desmarcadas. Comienza un **Mix de la unidad actual** y comprueba que solo aparecen ejercicios de *imparfait*. Después marca *y/en* y comprueba un nuevo mix.
+5. En **Mix de todo lo estudiado** deben mezclarse las materias activadas de U1 y U2, sin introducir contenidos pendientes. Prueba un acento omitido y revisa «Mi evolución»; cierra y abre para comprobar que se conservan los datos.
+6. **No publiques todavía**: primero hay que validar en Windows y asegurarse de conservar tu progreso en el OPPO. Una vez probado, los archivos de la aplicación deben subirse descomprimidos a GitHub Pages y revisarse la actualización de la PWA.
 
-> Aviso sobre el almacenamiento: esta versión utiliza la misma clave de datos que 0.4/0.4.1 (`frenchLab_v04_unite1_progress`). Cuando se ejecute sobre la misma dirección HTTPS y el mismo navegador, está diseñada para continuar los datos anteriores. En carpetas locales `file://` distintas no hay garantía de compartirlos: si no aparecen, podrás importar una copia JSON. **Importar sustituye el progreso existente de ese navegador**, por lo que conviene exportarlo primero.
+## Notas importantes
 
-## Publicación (más adelante)
+- Si la Unité 2 ya estaba activada en el progreso de 0.5, *imparfait*, *y/en*, adjetivos y recuerdos aparecerán habilitados; la nueva materia de comunicación queda pendiente. Esto es intencionado para no cambiar una selección previa; desmarca los temas que aún no conoces.
+- Las respuestas escritas se comparan con las respuestas admitidas en cada pregunta; los acentos se exigen. French Lab no es todavía un profesor conversacional de IA capaz de valorar cualquier formulación libre equivalente.
+- **No desinstales** la PWA ni borres sus datos de Chrome. Una exportación JSON permite restaurar el progreso si se pierde, pero importar reemplaza los datos actuales del navegador.
+- No hay sincronización entre PC y móvil. El teléfono puede ser tu dispositivo principal.
+- `PRUEBAS.md` registra las comprobaciones técnicas ejecutadas. Las pruebas automáticas no sustituyen las pruebas manuales con el navegador y el OPPO.
 
-No se ha actualizado GitHub ni la instalación de tu OPPO. Cuando terminemos las pruebas en Windows, podremos subir al repositorio los archivos de esta carpeta —incluidos los nuevos **`unite2.js`** y **`updates.css`**— y comprobar que se actualiza la PWA. **No subas el ZIP como archivo único**: GitHub Pages necesita el contenido descomprimido en la raíz del repositorio.
+## Archivos
 
-## Límites
+Para publicar: `index.html`, `app.js`, `unite2.js`, `french-lab-core.js`, `styles.css`, `updates.css`, `sw.js`, `manifest.webmanifest`, `icon.svg`.
 
-- El profesor conversacional con IA y la sincronización entre teléfono y ordenador **no** están incorporados.
-- Las respuestas escritas se comprueban con un conjunto de respuestas admitidas. Se toleran mayúsculas, espacios y cambios de apóstrofo, pero se exigen los acentos. Algunas formulaciones alternativas válidas pueden necesitar añadirse manualmente tras revisarlas.
-- Son 64 ejercicios originales nuevos, sometidos a comprobaciones técnicas y revisión de las respuestas previstas, pero **todavía necesitan pruebas manuales en el navegador y el OPPO**.
-- El usuario decide cuándo activar la Unité 2; incorporarla al archivo no equivale a activarla para los repasos.
-
-## Archivos de la aplicación
-
-`index.html`, `app.js`, `french-lab-core.js`, `unite2.js`, `styles.css`, `updates.css`, `sw.js`, `manifest.webmanifest`, `icon.svg`.
-
-El documento `PRUEBAS.md` resume las comprobaciones realizadas.
+Documentación opcional: `README.md`, `PRUEBAS.md`.

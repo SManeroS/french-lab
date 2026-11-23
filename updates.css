@@ -8,3 +8,11 @@
   font-size: 14px;
   line-height: 1.4;
 }
+
+/* French Lab 0.6: controles por materia dentro de la Unité 2. */
+.topic-shell{display:flex;flex-direction:column;gap:8px;min-width:0}
+.topic-shell .topic{flex:1;width:100%}
+.topic:disabled{opacity:.55;cursor:not-allowed;border-style:dashed}
+.topic:disabled:hover{background:#222d4b;border-color:#405078}
+.topic-control{display:flex;align-items:flex-start;gap:9px;background:#1e2d4b;border:1px solid #3b557d;border-radius:10px;padding:12px;color:#deebff;font-size:13px;cursor:pointer;min-height:48px}
+.topic-control input{flex:none;width:17px;height:17px;margin-top:1px}
